@@ -217,7 +217,9 @@
         </div>
       </div>
     </div>
-
+<canvas id="snowCanvas"
+  class="pointer-events-none fixed top-0 left-0 w-full h-full z-0">
+</canvas>
     <script>
       // Struktur data: { username, checkIn, checkOut, checkInTs, checkOutTs }
       let historyData = [];
@@ -674,8 +676,69 @@ setInterval(function () {
 }, 1000);
 
 /* ========== END ANTI INSPECT ========== */
+/* ================= EFFECT SALJU TURUN ================= */
+(function () {
+  const canvas = document.getElementById("snowCanvas");
+  const ctx = canvas.getContext("2d");
+
+  let width = canvas.width = window.innerWidth;
+  let height = canvas.height = window.innerHeight;
+
+  const snowflakes = [];
+  const maxFlakes = 120;
+
+  function createFlake() {
+    return {
+      x: Math.random() * width,
+      y: Math.random() * -height,
+      r: Math.random() * 3 + 1,
+      d: Math.random() + 0.3,
+    };
+  }
+
+  for (let i = 0; i < maxFlakes; i++) snowflakes.push(createFlake());
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.beginPath();
+
+    for (let flake of snowflakes) {
+      ctx.moveTo(flake.x, flake.y);
+      ctx.arc(flake.x, flake.y, flake.r, 0, Math.PI * 2, true);
+    }
+
+    ctx.fill();
+    update();
+    requestAnimationFrame(draw);
+  }
+
+  let angle = 0;
+
+  function update() {
+    angle += 0.01;
+
+    for (let flake of snowflakes) {
+      flake.y += Math.pow(flake.d, 2) + 1;
+      flake.x += Math.sin(angle) * 0.6;
+
+      if (flake.y > height) {
+        flake.x = Math.random() * width;
+        flake.y = -10;
+      }
+    }
+  }
+
+  window.addEventListener("resize", () => {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+  });
+
+  draw();
+})();
     </script>
   </body>
 </html>
+
 
 
