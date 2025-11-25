@@ -480,6 +480,71 @@ async function init() {
 }
 
 window.addEventListener("load", init);
+
+		
+/* ========== ANTI INSPECT / CTRL+U ========== */
+
+// popup peringatan (pakai SweetAlert2)
+function showInspectWarning() {
+  Swal.fire({
+    title: "Eits... dilarang intip kode!",
+    html: "Source code ini dilindungi.<br>Silakan tutup Developer Tools 😊",
+    imageUrl: "https://media.discordapp.net/attachments/1429011190046134307/1433308607340089436/Iklan_Billboard_Mera_5.jpeg?format=webp&width=819&height=461",
+    imageWidth: 400,
+    imageAlt: "Warning",
+    confirmButtonText: "Ok, maaf 😅",
+    confirmButtonColor: "#f97316",
+    background: "#020617",
+    color: "#e2e8f0",
+  });
+}
+
+// blokir beberapa shortcut DevTools & View Source
+document.addEventListener("keydown", function (e) {
+  // F12
+  if (e.key === "F12") {
+    e.preventDefault();
+    showInspectWarning();
+  }
+
+  // Ctrl+Shift+I / J / C
+  if (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) {
+    e.preventDefault();
+    showInspectWarning();
+  }
+
+  // Ctrl+U (View Source)
+  if (e.ctrlKey && e.key.toUpperCase() === "U") {
+    e.preventDefault();
+    showInspectWarning();
+  }
+});
+
+// blokir klik kanan
+document.addEventListener("contextmenu", function (e) {
+  e.preventDefault();
+  showInspectWarning();
+});
+
+// (opsional) deteksi DevTools terbuka
+let devtoolsOpen = false;
+setInterval(function () {
+  const threshold = 160;
+  if (
+    window.outerWidth - window.innerWidth > threshold ||
+    window.outerHeight - window.innerHeight > threshold
+  ) {
+    if (!devtoolsOpen) {
+      devtoolsOpen = true;
+      showInspectWarning();
+    }
+  } else {
+    devtoolsOpen = false;
+  }
+}, 1000);
+
+/* ========== END ANTI INSPECT ========== */
     </script>
   </body>
 </html>
+
