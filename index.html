@@ -3,7 +3,7 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <title>ON DUTY DISTRICT10</title>
+    <title>Check In Panel Multi Login + Durasi + WIB</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Tailwind CSS -->
@@ -49,17 +49,19 @@
       class="w-full max-w-5xl bg-slate-800/90 backdrop-blur border border-slate-700 rounded-2xl p-8 shadow-2xl text-slate-100 font-display"
     >
       <!-- Header: Logo + Jam Digital WIB -->
-      <div class="flex items-center justify-between mb-8 gap-4">
+      <div flex flex-col gap-4 mb-8
+         md:flex-row md:items-center md:justify-between">
         <!-- Logo kiri -->
         <div class="flex items-center gap-4">
           <div
-            class="w-40 h-20 rounded-xl bg-slate-900 border border-slate-600 flex items-center justify-center overflow-hidden shadow-md"
+            class="w-56 h-28 rounded-xl bg-slate-900 border border-slate-600
+             flex items-center justify-center overflow-hidden shadow-md"
           >
             <!-- Ganti src dengan logo kamu -->
             <img
-              src="https://media.discordapp.net/attachments/1429011190046134307/1433308607340089436/Iklan_Billboard_Mera_5.jpeg?ex=69252da9&is=6923dc29&hm=35f678b3fd30dd88557de9022b62821e24b439b0426c4bcd3f11e0517e796f90&=&format=webp&width=819&height=461"
+              src="https://media.discordapp.net/attachments/1429011190046134307/1433308607843270676/Iklan_Billboard_Mera.jpeg?ex=69267f29&is=69252da9&hm=ba5091fd5972897bf61530655eee769e31510daca7b0b76f259af82907cd7d1e&=&format=webp&width=822&height=462"
               alt="Logo"
-              class="max-h-full max-w-full object-contain"
+              class="max-w-[190px] max-h-[120px] object-contain"
             />
           </div>
           <div>
@@ -178,6 +180,42 @@
           </button>
         </div>
       </div>
+      <!-- REKAP MINGGUAN & BULANAN -->
+      <div class="mt-10 grid md:grid-cols-2 gap-6">
+        <!-- Rekap Mingguan -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <h2 class="font-bold text-lg">REKAP MINGGU INI</h2>
+            <span class="text-[11px] text-slate-400">Per user</span>
+          </div>
+          <div class="border border-slate-700 bg-slate-900/40 rounded-xl p-4 text-sm">
+            <div class="flex justify-between text-xs font-semibold border-b border-slate-700 pb-1 mb-2">
+              <span>User</span>
+              <span>Durasi</span>
+            </div>
+            <div id="weeklyRecapBox" class="space-y-1">
+              <p class="text-slate-500 italic">Belum ada data minggu ini.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rekap Bulanan -->
+        <div>
+          <div class="flex justify-between mb-2">
+            <h2 class="font-bold text-lg">REKAP BULAN INI</h2>
+            <span class="text-[11px] text-slate-400">Per user</span>
+          </div>
+          <div class="border border-slate-700 bg-slate-900/40 rounded-xl p-4 text-sm">
+            <div class="flex justify-between text-xs font-semibold border-b border-slate-700 pb-1 mb-2">
+              <span>User</span>
+              <span>Durasi</span>
+            </div>
+            <div id="monthlyRecapBox" class="space-y-1">
+              <p class="text-slate-500 italic">Belum ada data bulan ini.</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -193,7 +231,7 @@
 
       // Format durasi: 1 jam 30 menit 30 detik
       function formatDuration(startMs, endMs) {
-        if (!startMs || !endMs || endMs < startMs) return "-";
+        if (startMs == null || endMs == null || endMs < startMs) return "-";
         let totalSeconds = Math.floor((endMs - startMs) / 1000);
         if (totalSeconds < 0) totalSeconds = 0;
 
@@ -233,6 +271,95 @@
   }
 }
 
+// Helper: awal minggu ini (Senin 00:00) & cek minggu/bulan
+function getCurrentWeekRange() {
+  const now = new Date();
+  const start = new Date(now);
+  const day = now.getDay(); // 0 = Minggu, 1 = Senin, ...
+  const diffToMonday = (day + 6) % 7; // jarak dari Senin
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - diffToMonday);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+  return { start, end };
+}
+
+function isSameMonth(d1, d2) {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth()
+  );
+}
+
+// Hitung total durasi per user untuk minggu & bulan ini
+function computeRecap() {
+  const weekly = {};
+  const monthly = {};
+  const now = new Date();
+  const { start: weekStart, end: weekEnd } = getCurrentWeekRange();
+
+  historyData.forEach((sesi) => {
+    if (!sesi.checkInTs || !sesi.checkOutTs) return;
+    const durMs = sesi.checkOutTs - sesi.checkInTs;
+    if (durMs <= 0) return;
+
+    const startDate = new Date(sesi.checkInTs);
+    const uname = sesi.username || "Unknown";
+
+    // Minggu ini
+    if (startDate >= weekStart && startDate < weekEnd) {
+      weekly[uname] = (weekly[uname] || 0) + durMs;
+    }
+
+    // Bulan ini
+    if (isSameMonth(startDate, now)) {
+      monthly[uname] = (monthly[uname] || 0) + durMs;
+    }
+  });
+
+  return { weekly, monthly };
+}
+
+// Render tabel recap (dipakai 2x)
+function renderRecapTable(map, boxId, emptyText) {
+  const box = document.getElementById(boxId);
+  if (!box) return;
+  box.innerHTML = "";
+
+  const entries = Object.entries(map);
+  if (!entries.length) {
+    box.innerHTML = `<p class="text-slate-500 italic">${emptyText}</p>`;
+    return;
+  }
+
+  // Urutkan dari durasi terbesar
+  entries.sort((a, b) => b[1] - a[1]);
+
+  entries.forEach(([username, totalMs], idx) => {
+    const row = document.createElement("div");
+    row.className =
+      "flex items-center justify-between text-sm border-b border-slate-700/60 py-1 last:border-0";
+
+    row.innerHTML = `
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-500">${idx + 1}.</span>
+        <span class="font-semibold text-slate-100">${username}</span>
+      </div>
+      <div class="text-xs text-emerald-300">
+        ${formatDuration(0, totalMs)}
+      </div>
+    `;
+    box.appendChild(row);
+  });
+}
+
+// Fungsi utama untuk render rekap
+function renderRecap() {
+  const { weekly, monthly } = computeRecap();
+  renderRecapTable(weekly, "weeklyRecapBox", "Belum ada data minggu ini.");
+  renderRecapTable(monthly, "monthlyRecapBox", "Belum ada data bulan ini.");
+}
 
       // Render tabel history
       function renderHistory() {
@@ -359,6 +486,7 @@
           save();
           renderHistory();
           renderActiveUsers();
+		  renderRecap();
 
           input.value = "";
           input.focus();
@@ -394,6 +522,7 @@
             save();
             renderHistory();
             renderActiveUsers();
+			renderRecap();
 
             Swal.fire({
               title: "Berhasil logout",
@@ -427,6 +556,7 @@
             save();
             renderHistory();
             renderActiveUsers();
+			renderRecap();
 
             Swal.fire({
               title: "Berhasil!",
@@ -471,9 +601,10 @@
       }
 
 async function init() {
-  await load();           // ambil history dari Cloudflare KV
-  renderHistory();        // lalu render
+  await load();           // ambil history dari KV
+  renderHistory();
   renderActiveUsers();
+  renderRecap();
 
   updateWIBClock();
   setInterval(updateWIBClock, 1000);
@@ -481,72 +612,7 @@ async function init() {
 
 window.addEventListener("load", init);
 
-		
-/* ========== ANTI INSPECT / CTRL+U ========== */
 
-// popup peringatan (pakai SweetAlert2)
-function showInspectWarning() {
-  Swal.fire({
-    title: "Eits... dilarang intip kode!",
-    html: "Source code ini dilindungi ETHAN.<br>Silakan tutup Developer Tools 😊",
-    imageUrl: "https://media.discordapp.net/attachments/1429011190046134307/1433308607340089436/Iklan_Billboard_Mera_5.jpeg?format=webp&width=819&height=461",
-    imageWidth: 400,
-    imageAlt: "Warning",
-    confirmButtonText: "Ok, maaf 😅",
-    confirmButtonColor: "#f97316",
-    background: "#020617",
-    color: "#e2e8f0",
-  });
-}
-
-// blokir beberapa shortcut DevTools & View Source
-document.addEventListener("keydown", function (e) {
-  // F12
-  if (e.key === "F12") {
-    e.preventDefault();
-    showInspectWarning();
-  }
-
-  // Ctrl+Shift+I / J / C
-  if (e.ctrlKey && e.shiftKey && ["I", "J", "C"].includes(e.key.toUpperCase())) {
-    e.preventDefault();
-    showInspectWarning();
-  }
-
-  // Ctrl+U (View Source)
-  if (e.ctrlKey && e.key.toUpperCase() === "U") {
-    e.preventDefault();
-    showInspectWarning();
-  }
-});
-
-// blokir klik kanan
-document.addEventListener("contextmenu", function (e) {
-  e.preventDefault();
-  showInspectWarning();
-});
-
-// (opsional) deteksi DevTools terbuka
-let devtoolsOpen = false;
-setInterval(function () {
-  const threshold = 160;
-  if (
-    window.outerWidth - window.innerWidth > threshold ||
-    window.outerHeight - window.innerHeight > threshold
-  ) {
-    if (!devtoolsOpen) {
-      devtoolsOpen = true;
-      showInspectWarning();
-    }
-  } else {
-    devtoolsOpen = false;
-  }
-}, 1000);
-
-/* ========== END ANTI INSPECT ========== */
     </script>
   </body>
 </html>
-
-
-
