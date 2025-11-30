@@ -370,14 +370,17 @@ function renderRecap() {
       function renderHistory() {
         const box = document.getElementById("historyList");
         box.innerHTML = "";
+		
+		// hanya sesi yang tidak disembunyikan
+		const visibleHistory = historyData.filter((sesi) => !sesi.hideFromHistory);
 
-        if (!historyData.length) {
+        if (!visibleHistory.length) {
           box.innerHTML =
             '<p class="text-slate-500 italic">Belum ada history check in.</p>';
           return;
         }
 
-        historyData.forEach((sesi) => {
+        visibleHistory.forEach((sesi) => {
           const row = document.createElement("div");
           row.className =
             "grid grid-cols-[0.8fr_1.1fr_1.1fr_1.2fr] border-b border-slate-700 pb-1 mb-1 last:border-b-0 last:mb-0";
@@ -546,7 +549,7 @@ function renderRecap() {
       function clearHistory() {
         Swal.fire({
           title: "Hapus semua history?",
-          text: "Data check in & check out akan hilang permanen.",
+          text: "History akan disembunyikan, rekap mingguan & bulanan tetap tersimpan.",
           icon: "warning",
           showCancelButton: true,
           confirmButtonText: "Ya, hapus",
@@ -557,15 +560,20 @@ function renderRecap() {
           color: "#e2e8f0",
         }).then((result) => {
           if (result.isConfirmed) {
-            historyData = [];
+		   // tandai semua sesi yang sudah logout agar disembunyikan dari history
+           historyData.forEach((sesi) => {
+			if (sesi.checkOutTs) {
+			  sesi.hideFromHistory = true;
+			}
+		    });
             save();
             renderHistory();
-            renderActiveUsers();
-			renderRecap();
+			renderActiveUsers();
+			renderRecap(); // rekap masih pakai semua data, cuma range minggu/bulan saja
 
             Swal.fire({
               title: "Berhasil!",
-              text: "Semua history telah dihapus.",
+              text: "History berhasil dibersihkan. Rekap mingguan & bulanan tetap tersimpan.",
               icon: "success",
               timer: 1500,
               showConfirmButton: false,
