@@ -258,6 +258,41 @@
 		body: JSON.stringify(historyData),
 		}).catch((err) => console.error("Gagal save history:", err));
 	}
+// Parse "dd/mm/yyyy HH:MM(:SS)? WIB" -> timestamp (ms)
+// contoh input: "30/11/2025 09:30:00 WIB"
+function parseWibDateTime(str) {
+  if (!str) return null;
+
+  str = str.replace("WIB", "").trim(); // buang WIB
+
+  const parts = str.split(" ");
+  if (parts.length < 2) return null;
+
+  const [datePart, timePart] = parts;
+  const [dd, mm, yyyy] = datePart.split("/").map(Number);
+  if (!dd || !mm || !yyyy) return null;
+
+  const timeSplit = timePart.split(":").map(Number);
+  const hh = timeSplit[0] ?? 0;
+  const min = timeSplit[1] ?? 0;
+  const ss = timeSplit[2] ?? 0;
+
+  // Date(year, monthIndex, day, hour, minute, second)
+  const d = new Date(yyyy, mm - 1, dd, hh, min, ss);
+  return d.getTime();
+}
+
+// Migrasi data lama yang belum punya checkInTs / checkOutTs
+function migrateOldHistory() {
+  historyData.forEach((sesi) => {
+    if (!sesi.checkInTs && sesi.checkIn) {
+      sesi.checkInTs = parseWibDateTime(sesi.checkIn);
+    }
+    if (!sesi.checkOutTs && sesi.checkOut) {
+      sesi.checkOutTs = parseWibDateTime(sesi.checkOut);
+    }
+  });
+}
 
 		async function load() {
 		try {
@@ -270,6 +305,11 @@
 		} else {
 		historyData = [];
 		}
+		// 🔁 migrasi data lama -> tambahkan timestamp kalau belum ada
+		migrateOldHistory();
+		
+		// opsional: langsung simpan balik ke KV dalam format baru
+		save();
 	} catch (e) {
 	console.error("Gagal load history:", e);
     historyData = [];
@@ -750,6 +790,7 @@ setInterval(function () {
     </script>
   </body>
 </html>
+
 
 
 
