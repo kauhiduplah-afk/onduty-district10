@@ -170,22 +170,24 @@
             </div>
           </div>
       </div>
-      <!-- REKAP MINGGUAN & BULANAN -->
-      <div class="mt-10 grid md:grid-cols-2 gap-6">
-        <!-- Rekap Mingguan -->
-        <div>
+      <!-- WRAPPER REKAP AGAR DI TENGAH -->
+      <div class="w-full flex justify-center mt-10">
+        <div class="w-[95%] max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+		<!-- REKAP MINGGU INI -->
+		<div>
           <div class="flex justify-between mb-2">
             <h2 class="font-bold text-lg">REKAP MINGGU INI</h2>
             <span class="text-[11px] text-slate-400">Per user</span>
           </div>
-          <div class="border border-slate-700 bg-slate-900/40 rounded-xl p-4 text-sm">
-            <div class="flex justify-between text-xs font-semibold border-b border-slate-700 pb-1 mb-2">
+		  
+		  <div class="recap-box w-full">
+          <div class="grid grid-cols-2 text-xs font-semibold text-slate-300 border-b border-slate-700/60 pb-1 mb-1">
               <span>User</span>
-              <span>Durasi</span>
+              <span class="text-right">Durasi</span>
             </div>
-            <div id="weeklyRecapBox" class="space-y-1">
-              <p class="text-slate-500 italic">Belum ada data minggu ini.</p>
-            </div>
+			
+            <div id="weeklyRecapBox" class="p-1 space-y-1 text-xs"></div>
           </div>
         </div>
 
@@ -195,14 +197,14 @@
             <h2 class="font-bold text-lg">REKAP BULAN INI</h2>
             <span class="text-[11px] text-slate-400">Per user</span>
           </div>
-          <div class="border border-slate-700 bg-slate-900/40 rounded-xl p-4 text-sm">
-            <div class="flex justify-between text-xs font-semibold border-b border-slate-700 pb-1 mb-2">
+		  
+		  <div class="recap-box w-full">
+          <div class="grid grid-cols-2 text-xs font-semibold text-slate-300 border-b border-slate-700/60 pb-1 mb-1">
               <span>User</span>
-              <span>Durasi</span>
+              <span class="text-right">Durasi</span>
             </div>
-            <div id="monthlyRecapBox" class="space-y-1">
-              <p class="text-slate-500 italic">Belum ada data bulan ini.</p>
-            </div>
+			
+            <div id="monthlyRecapBox" class="p-1 space-y-1 text-xs"></div>
           </div>
         </div>
       </div>
@@ -742,7 +744,6 @@ setInterval(function () {
     </script>
   </body>
 </html>
-
 
 
 
