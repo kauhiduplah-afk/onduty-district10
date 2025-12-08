@@ -42,3 +42,25 @@ export async function onRequestPost({ env, request }) {
     });
   }
 }
+
+function summonDragon() {
+  const wrapper = document.getElementById("dragonWrapper");
+  if (!wrapper) return;
+
+  const dragons = wrapper.querySelectorAll(".dragon");
+
+  wrapper.classList.remove("dragon-hidden");
+
+  // reset & mulai animasi untuk naga utama + jejak
+  dragons.forEach((d) => {
+    d.classList.remove("dragonAnimate");
+    // trik reset animasi
+    void d.offsetWidth;
+    d.classList.add("dragonAnimate");
+  });
+
+  // sembunyikan lagi setelah animasi selesai
+  setTimeout(() => {
+    wrapper.classList.add("dragon-hidden");
+  }, 5200);
+}
