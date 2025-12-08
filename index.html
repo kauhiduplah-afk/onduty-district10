@@ -24,6 +24,85 @@
       };
     </script>
 	<style>
+/* Posisi wrapper naga */
+#dragonWrapper {
+  position: fixed;
+  top: 20%;
+  left: -320px;
+  width: 280px;
+  height: 180px;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.dragon-hidden {
+  display: none;
+}
+
+/* Bentuk dasar naga */
+.dragon {
+  position: absolute;
+  inset: 0;
+  background-image: url('https://i.ibb.co/P4DKnM1/dragon-fly.gif');
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transform: translateX(0) scale(1);
+}
+
+/* Naga utama */
+.dragon-main.dragonAnimate {
+  animation: flyDragon 5s linear forwards;
+  opacity: 1;
+}
+
+/* Jejak naga (ghost) */
+.dragon-trail {
+  filter: blur(2px);
+}
+
+/* Ghost 1 */
+.trail-1.dragonAnimate {
+  animation: flyDragon 5s linear forwards;
+  animation-delay: 0.08s;
+  opacity: 0.5;
+  filter: blur(2px);
+}
+
+/* Ghost 2 */
+.trail-2.dragonAnimate {
+  animation: flyDragon 5s linear forwards;
+  animation-delay: 0.16s;
+  opacity: 0.35;
+  filter: blur(3px);
+}
+
+/* Ghost 3 */
+.trail-3.dragonAnimate {
+  animation: flyDragon 5s linear forwards;
+  animation-delay: 0.24s;
+  opacity: 0.22;
+  filter: blur(4px);
+}
+
+/* Jalur terbang naga */
+@keyframes flyDragon {
+  0% {
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translateX(600px) translateY(-40px) scale(1.05);
+  }
+  70% {
+    transform: translateX(1200px) translateY(20px) scale(1);
+  }
+  100% {
+    transform: translateX(1600px) translateY(0) scale(1.05);
+    opacity: 0;
+  }
+}
+
 @keyframes colorBlink {
   0% { color: #ff0000; }      /* Merah */
   25% { color: #ff8800; }     /* Oranye */
@@ -223,7 +302,7 @@
           .replaceAll(".", ":");
       }
 
-      // Format durasi: 1 jam 30 menit 30 detik
+      // Format durasi: hanya jam & menit
       function formatDuration(startMs, endMs) {
         if (startMs == null || endMs == null || endMs < startMs) return "-";
         let totalSeconds = Math.floor((endMs - startMs) / 1000);
@@ -232,12 +311,13 @@
         const jam = Math.floor(totalSeconds / 3600);
         totalSeconds %= 3600;
         const menit = Math.floor(totalSeconds / 60);
-        const detik = totalSeconds % 60;
 
         const parts = [];
         if (jam > 0) parts.push(`${jam} jam`);
         if (menit > 0) parts.push(`${menit} menit`);
-        parts.push(`${detik} detik`);
+		
+		// bila jam & menit = 0 → minimal "0 menit"
+		if (parts.length === 0) return "0 menit";
 
         return parts.join(" ");
       }
@@ -742,6 +822,12 @@ setInterval(function () {
   draw();
 })();
     </script>
+<div id="dragonWrapper" class="dragon-hidden">
+  <div class="dragon dragon-main"></div>
+  <div class="dragon dragon-trail trail-1"></div>
+  <div class="dragon dragon-trail trail-2"></div>
+  <div class="dragon dragon-trail trail-3"></div>
+</div>
   </body>
 </html>
 
